@@ -2,4 +2,4 @@
 
 ## Usage
 
-`poetry run python glacier_helper_python/helper.py <path_to_json>`
+`poetry run python glacier_helper_python/helper.py <path_to_json> <vault_name>`

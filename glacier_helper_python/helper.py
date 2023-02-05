@@ -54,21 +54,18 @@ def extract(xs: list) -> dict:
     return r
 
 
-def txt_to_html(xs: dict) -> str:
-    v = "vault_name"
+def txt_to_html(xs: dict, vn="vault_name") -> str:
     t = "<!DOCTYPE html><html><title>output.json to output.html</title><body>"
     t += f"<h2>Glacier vault contains: {len(xs)} objects aka files:</h2>"
-    t1 = """
+    aws_initiate_job = """
+    $meta | 
+    <input type='text' value='aws glacier initiate-job --vault-name $vault_name --account-id - --job-parameters {"Type":"archive-retrieval","Tier":"Bulk","ArchiveId":"$archive_id"}' id='$id'>
     <button onclick="cp('$id')">Initiate Job</button></br>
     """
     for i, (x, y) in enumerate(xs.items()):
-        aws_initiate_job = f"aws glacier initiate-job --vault-name {v} "
-        aws_initiate_job += f"--account-id - --job-parameters "
-        aws_initiate_job += '{"Type":"archive-retrieval","Tier":"Bulk","ArchiveId":"'
-        aws_initiate_job += x
-        aws_initiate_job += '"}'
-        t += f"{y} | <input type='text' value='{aws_initiate_job}' id='{i}'>"
-        t += Template(t1).safe_substitute(id=i)
+        t2 = Template(aws_initiate_job).safe_substitute(meta=y,vault_name=vn,archive_id=x,id=i)
+        t2 = t2.strip()
+        t += t2
     t += "<script>"
     t += "function cp(y) {"
     t += "console.log(y);"
@@ -83,24 +80,25 @@ def txt_to_html(xs: dict) -> str:
     return t
 
 
-def save_html(xs, y="output.html"):
-    ys = txt_to_html(xs)
-    with open(y, "w") as f:
+def save_html(xs, vn, z="output.html"):
+    ys = txt_to_html(xs, vn)
+    with open(z, "w") as f:
         f.write(ys)
 
 
-def parse(x):
+def parse(x, vn):
     data = read_file(x)
     r = extract(data["ArchiveList"])
-    save_html(r)
+    save_html(r, vn)
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("filename", help="path to json file", type=str)
+    parser.add_argument("vault", help="vault name", type=str)
     args = parser.parse_args()
     if is_file_exist(args.filename):
-        parse(args.filename)
+        parse(args.filename, args.vault)
     else:
         print("File not found. Please provide a valid path to json filename")
 
