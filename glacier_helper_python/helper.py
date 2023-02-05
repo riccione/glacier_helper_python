@@ -59,7 +59,7 @@ def txt_to_html(xs: dict, vn="vault_name") -> str:
     t += f"<h2>Glacier vault contains: {len(xs)} objects aka files:</h2>"
     aws_initiate_job = """
     $meta | 
-    <input type='text' value='aws glacier initiate-job --vault-name $vault_name --account-id - --job-parameters {"Type":"archive-retrieval","Tier":"Bulk","ArchiveId":"$archive_id"}' id='$id'>
+    <input type='text' value='aws glacier initiate-job --vault-name $vault_name --account-id - --job-parameters "{\\"Type\\":\\"archive-retrieval\\",\\"Tier\\":\\"Bulk\\",\\"ArchiveId\\":\\"$archive_id\\"}"' id='$id'>
     <button onclick="cp('$id')">Initiate Job</button></br>
     """
     for i, (x, y) in enumerate(xs.items()):
