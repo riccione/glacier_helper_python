@@ -7,6 +7,7 @@ depends on aws console
     - interactively generate aws console commands for glacier
 """
 import argparse
+import os
 from pathlib import Path
 import json
 from datetime import datetime as dt
@@ -45,8 +46,10 @@ def extract(xs: list) -> dict:
     for x in xs:
         ys = json.loads(x["ArchiveDescription"])
         t = []
+        p = Path(ys['Path'])
+        p = os.path.basename(p)
         t.append(
-            f"{ys['Path']} | \
+            f"{p} | \
             {size_h(x['Size'])} | \
             {datetime_h(x['CreationDate'])}"
         )
@@ -58,9 +61,14 @@ def txt_to_html(xs: dict, vn="vault_name") -> str:
     t = "<!DOCTYPE html><html><title>output.json to output.html</title><body>"
     t += f"<h2>Glacier vault contains: {len(xs)} objects aka files:</h2>"
     aws_initiate_job = """
-    $meta | 
-    <input type='text' value='aws glacier initiate-job --vault-name $vault_name --account-id - --job-parameters "{\\"Type\\":\\"archive-retrieval\\",\\"Tier\\":\\"Bulk\\",\\"ArchiveId\\":\\"$archive_id\\"}"' id='$id'>
+    $meta |
+    <input type='text' value='aws glacier initiate-job --vault-name $vault_name
+    --account-id - --job-parameters
+    "{\\"Type\\":\\"archive-retrieval\\",\\"Tier\\":\\"Bulk\\",\\"ArchiveId\\":\\"$archive_id\\"}"'
+    id='$id' />
     <button onclick="cp('$id')">Initiate Job</button></br>
+    <input type='text' value='$archive_id' id='$archiveId' />
+    <button onclick="cp_archive('$archiveId')">ArchiveId</button></br>
     """
     for i, (x, y) in enumerate(xs.items()):
         t2 = Template(aws_initiate_job).safe_substitute(meta=y,vault_name=vn,archive_id=x,id=i)
@@ -74,8 +82,16 @@ def txt_to_html(xs: dict, vn="vault_name") -> str:
     t += "x.setSelectionRange(0, 99999);"
     t += "navigator.clipboard.writeText(x.value);"
     t += 'alert("Copied: " + x.value);'
-    t += "}"
-    t += "</script>"
+    t += "}\n"
+    t += "function cp_archive(y) {\n"
+    t += "console.log(y);\n"
+    t += "let x = document.getElementById(y);\n"
+    t += "x.select();\n"
+    t += "x.setSelectionRange(0, 99999);\n"
+    t += "navigator.clipboard.writeText(x.value);\n"
+    t += 'alert("Copied: " + x.value);\n'
+    t += "}\n"
+    t += "</script>\n"
     t += "</body></html>"
     return t
 
