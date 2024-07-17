@@ -67,8 +67,8 @@ def txt_to_html(xs: dict, vn="vault_name") -> str:
     "{\\"Type\\":\\"archive-retrieval\\",\\"Tier\\":\\"Bulk\\",\\"ArchiveId\\":\\"$archive_id\\"}"'
     id='$id' />
     <button onclick="cp('$id')">Initiate Job</button></br>
-    <input type='text' value='$archive_id' id='$archiveId' />
-    <button onclick="cp_archive('$archiveId')">ArchiveId</button></br>
+    <input type='text' value='$archive_id' id='$archive_id' />
+    <button onclick="cp_archive('$archive_id')">ArchiveId</button></br>
     """
     for i, (x, y) in enumerate(xs.items()):
         t2 = Template(aws_initiate_job).safe_substitute(meta=y,vault_name=vn,archive_id=x,id=i)
